@@ -1,0 +1,11 @@
+shares/
+*.json
+__pycache__/
+*.pyc
+.env
+audit_log.json
+dist/
+*.egg-info/
+.pytest_cache/
+.venv/
+venv/
