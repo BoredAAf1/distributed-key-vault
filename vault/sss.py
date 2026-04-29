@@ -5,7 +5,7 @@ Secrets are prefixed with a 4-byte length header before conversion to a
 field element so that leading-zero bytes round-trip correctly.
 """
 
-import secrets
+from vault.randomness import RandomSource, get_random_source
 
 # secp256k1 field prime — 256-bit safe prime
 P = 2**256 - 2**32 - 2**9 - 2**8 - 2**7 - 2**6 - 2**4 - 1
@@ -14,10 +14,13 @@ _MAX_SECRET_BYTES = 27  # 4-byte prefix + 27 bytes = 31 bytes << 256 bits, alway
 
 
 class ShamirSSS:
-    def __init__(self):
+    def __init__(self, rng: RandomSource | None = None):
         self.P = P
+        self.rng = rng or get_random_source()
 
-    def split(self, secret: bytes, n: int, k: int) -> tuple[list[tuple[int, int]], list[int]]:
+    def split(
+        self, secret: bytes, n: int, k: int
+    ) -> tuple[list[tuple[int, int]], list[int]]:
         """
         Split *secret* into *n* shares with reconstruction threshold *k*.
 
@@ -41,10 +44,12 @@ class ShamirSSS:
         secret_int = int.from_bytes(padded, "big")
 
         if secret_int >= self.P:
-            raise ValueError("Secret integer value exceeds prime field — reduce secret size.")
+            raise ValueError(
+                "Secret integer value exceeds prime field — reduce secret size."
+            )
 
         # Polynomial a[0]=secret, a[1..k-1]=random
-        coeffs = [secret_int] + [secrets.randbelow(self.P) for _ in range(k - 1)]
+        coeffs = [secret_int] + [self.rng.randbelow(self.P) for _ in range(k - 1)]
 
         shares = [(i, self._poly_eval(coeffs, i, self.P)) for i in range(1, n + 1)]
         return shares, coeffs

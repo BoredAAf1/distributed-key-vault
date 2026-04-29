@@ -5,19 +5,23 @@ A session is a plain dict so it can be pickled / serialised without
 circular references; the manager provides operations on it.
 """
 
-import secrets
 import time
 import uuid
+
+from vault.randomness import RandomSource, get_random_source
 
 _SESSION_TTL = 300  # seconds
 
 
 class SessionManager:
+    def __init__(self, rng: RandomSource | None = None):
+        self.rng = rng or get_random_source()
+
     def create_session(self, threshold: int) -> dict:
         now = time.time()
         return {
             "session_id": str(uuid.uuid4()),
-            "nonce": secrets.token_hex(16),
+            "nonce": self.rng.token_hex(16),
             "created_at": now,
             "expires_at": now + _SESSION_TTL,
             "threshold": threshold,

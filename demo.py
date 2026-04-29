@@ -55,7 +55,9 @@ def main() -> None:
         preview = ct[:32] + ("…" if len(ct) > 32 else "")
         print(f"  Share {i + 1}: salt={share['salt'][:12]}… ct={preview}")
 
-    print(f"\n  Commitments: {len(commitments)} values (first={commitments[0] % 10**12}…)")
+    print(
+        f"\n  Commitments: {len(commitments)} values (first={commitments[0] % 10**12}…)"
+    )
 
     # ── 3. Reconstruct from shares 1, 3, 5 ───────────────────────────────
     separator("3  Reconstruct (shares 1, 3, 5)")

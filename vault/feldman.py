@@ -22,8 +22,8 @@ _G = 16
 class FeldmanVSS:
     def __init__(self):
         self.g = _G
-        self.q = _SSS_PRIME   # group order (= SSS field prime)
-        self.M = _M            # group modulus
+        self.q = _SSS_PRIME  # group order (= SSS field prime)
+        self.M = _M  # group modulus
 
     def generate_commitments(self, coeffs: list[int]) -> list[int]:
         """C_i = g^{a_i} mod M for each polynomial coefficient a_i ∈ Z_q."""

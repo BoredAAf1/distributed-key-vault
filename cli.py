@@ -37,12 +37,30 @@ def _build_vault(ctx, use_quantum: bool = False) -> DistributedKeyVault:
 # split
 # ---------------------------------------------------------------------------
 
+
 @cli.command()
-@click.option("--secret", prompt="Secret to split", hide_input=True, help="The secret to protect")
-@click.option("--shares", "n", default=5, show_default=True, help="Total number of shares")
-@click.option("--threshold", "k", default=3, show_default=True, help="Minimum shares needed to reconstruct")
-@click.option("--output-dir", default="shares", show_default=True, help="Directory for output files")
-@click.option("--use-quantum", is_flag=True, help="Use Qiskit-backed quantum random generation.")
+@click.option(
+    "--secret", prompt="Secret to split", hide_input=True, help="The secret to protect"
+)
+@click.option(
+    "--shares", "n", default=5, show_default=True, help="Total number of shares"
+)
+@click.option(
+    "--threshold",
+    "k",
+    default=3,
+    show_default=True,
+    help="Minimum shares needed to reconstruct",
+)
+@click.option(
+    "--output-dir",
+    default="shares",
+    show_default=True,
+    help="Directory for output files",
+)
+@click.option(
+    "--use-quantum", is_flag=True, help="Use Qiskit-backed quantum random generation."
+)
 @click.pass_context
 def split(ctx, secret, n, k, output_dir, use_quantum):
     """Split a secret into n encrypted shares with threshold k."""
@@ -90,11 +108,20 @@ def split(ctx, secret, n, k, output_dir, use_quantum):
 # reconstruct
 # ---------------------------------------------------------------------------
 
+
 @cli.command()
-@click.option("--shares-dir", default=None, help="Directory containing share_*.json files")
-@click.option("--share-files", multiple=True, help="Explicit share file paths (repeatable)")
-@click.option("--commitments", "commitments_path", default=None, help="Path to commitments.json")
-@click.option("--use-quantum", is_flag=True, help="Use Qiskit-backed quantum random generation.")
+@click.option(
+    "--shares-dir", default=None, help="Directory containing share_*.json files"
+)
+@click.option(
+    "--share-files", multiple=True, help="Explicit share file paths (repeatable)"
+)
+@click.option(
+    "--commitments", "commitments_path", default=None, help="Path to commitments.json"
+)
+@click.option(
+    "--use-quantum", is_flag=True, help="Use Qiskit-backed quantum random generation."
+)
 @click.pass_context
 def reconstruct(ctx, shares_dir, share_files, commitments_path, use_quantum):
     """Reconstruct a secret from k or more encrypted shares."""
@@ -117,7 +144,9 @@ def reconstruct(ctx, shares_dir, share_files, commitments_path, use_quantum):
         if shares_dir:
             commitments_path = os.path.join(shares_dir, "commitments.json")
         else:
-            click.echo("Error: --commitments is required when using --share-files", err=True)
+            click.echo(
+                "Error: --commitments is required when using --share-files", err=True
+            )
             sys.exit(1)
 
     if not os.path.exists(commitments_path):
@@ -150,10 +179,15 @@ def reconstruct(ctx, shares_dir, share_files, commitments_path, use_quantum):
 # verify
 # ---------------------------------------------------------------------------
 
+
 @cli.command()
 @click.option("--share-file", required=True, help="Share file to verify")
-@click.option("--commitments", "commitments_path", required=True, help="Path to commitments.json")
-@click.option("--use-quantum", is_flag=True, help="Use Qiskit-backed quantum random generation.")
+@click.option(
+    "--commitments", "commitments_path", required=True, help="Path to commitments.json"
+)
+@click.option(
+    "--use-quantum", is_flag=True, help="Use Qiskit-backed quantum random generation."
+)
 @click.pass_context
 def verify(ctx, share_file, commitments_path, use_quantum):
     """Verify a single share against Feldman VSS commitments."""
@@ -181,8 +215,11 @@ def verify(ctx, share_file, commitments_path, use_quantum):
 # audit
 # ---------------------------------------------------------------------------
 
+
 @cli.command()
-@click.option("--log-file", default="audit_log.json", show_default=True, help="Audit log path")
+@click.option(
+    "--log-file", default="audit_log.json", show_default=True, help="Audit log path"
+)
 @click.option("--verify-chain", is_flag=True, help="Check hash-chain integrity")
 def audit(log_file, verify_chain):
     """Pretty-print the audit log (and optionally verify chain integrity)."""

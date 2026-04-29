@@ -9,15 +9,22 @@ from vault.feldman import FeldmanVSS
 from vault.crypto import ShareCrypto
 from vault.audit import AuditLog
 from vault.session import SessionManager
+from vault.randomness import RandomSource, get_random_source
 
 
 class DistributedKeyVault:
-    def __init__(self, audit_log_path: str = "audit_log.json"):
-        self.sss = ShamirSSS()
+    def __init__(
+        self,
+        audit_log_path: str = "audit_log.json",
+        use_quantum_rng: bool = False,
+        rng: RandomSource | None = None,
+    ):
+        self.rng = rng or get_random_source(use_quantum_rng)
+        self.sss = ShamirSSS(self.rng)
         self.feldman = FeldmanVSS()
-        self.crypto = ShareCrypto()
+        self.crypto = ShareCrypto(self.rng)
         self.audit = AuditLog(audit_log_path)
-        self.session_mgr = SessionManager()
+        self.session_mgr = SessionManager(self.rng)
 
     # ------------------------------------------------------------------
     # Public API
@@ -113,7 +120,9 @@ class DistributedKeyVault:
 
             # Replay protection
             if not self.session_mgr.add_share(session, x):
-                self.audit.log("RECONSTRUCT_FAIL", {"reason": "duplicate_share", "x": x})
+                self.audit.log(
+                    "RECONSTRUCT_FAIL", {"reason": "duplicate_share", "x": x}
+                )
                 raise ValueError(f"Duplicate share x={x} rejected (replay attack?)")
 
             decrypted_shares.append(share)
