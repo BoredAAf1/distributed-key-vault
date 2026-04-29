@@ -9,3 +9,8 @@ dist/
 .pytest_cache/
 .venv/
 venv/
+shares/
+audit_log.json
+env/
+venv/
+.codex
