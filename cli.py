@@ -15,8 +15,22 @@ from vault.vault import DistributedKeyVault
 
 
 @click.group()
-def cli():
+@click.option(
+    "--use-quantum",
+    is_flag=True,
+    help="Use Qiskit-backed quantum random generation for this run.",
+)
+@click.pass_context
+def cli(ctx, use_quantum):
     """Distributed Key Vault — Shamir's Secret Sharing CLI."""
+    ctx.ensure_object(dict)
+    ctx.obj["use_quantum_rng"] = use_quantum
+
+
+def _build_vault(ctx, use_quantum: bool = False) -> DistributedKeyVault:
+    return DistributedKeyVault(
+        use_quantum_rng=ctx.obj.get("use_quantum_rng", False) or use_quantum
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -28,7 +42,9 @@ def cli():
 @click.option("--shares", "n", default=5, show_default=True, help="Total number of shares")
 @click.option("--threshold", "k", default=3, show_default=True, help="Minimum shares needed to reconstruct")
 @click.option("--output-dir", default="shares", show_default=True, help="Directory for output files")
-def split(secret, n, k, output_dir):
+@click.option("--use-quantum", is_flag=True, help="Use Qiskit-backed quantum random generation.")
+@click.pass_context
+def split(ctx, secret, n, k, output_dir, use_quantum):
     """Split a secret into n encrypted shares with threshold k."""
     if k < 2:
         click.echo("Error: threshold must be at least 2", err=True)
@@ -46,7 +62,7 @@ def split(secret, n, k, output_dir):
         )
         passwords.append(pwd)
 
-    vault = DistributedKeyVault()
+    vault = _build_vault(ctx, use_quantum)
     result = vault.split_secret(secret, n, k, passwords)
 
     os.makedirs(output_dir, exist_ok=True)
@@ -78,7 +94,9 @@ def split(secret, n, k, output_dir):
 @click.option("--shares-dir", default=None, help="Directory containing share_*.json files")
 @click.option("--share-files", multiple=True, help="Explicit share file paths (repeatable)")
 @click.option("--commitments", "commitments_path", default=None, help="Path to commitments.json")
-def reconstruct(shares_dir, share_files, commitments_path):
+@click.option("--use-quantum", is_flag=True, help="Use Qiskit-backed quantum random generation.")
+@click.pass_context
+def reconstruct(ctx, shares_dir, share_files, commitments_path, use_quantum):
     """Reconstruct a secret from k or more encrypted shares."""
     # Resolve share files
     files_to_load: list[str] = []
@@ -119,7 +137,7 @@ def reconstruct(shares_dir, share_files, commitments_path):
         for p in files_to_load
     ]
 
-    vault = DistributedKeyVault()
+    vault = _build_vault(ctx, use_quantum)
     try:
         secret = vault.reconstruct_secret(encrypted_shares, passwords, commitment_list)
         click.echo(f"\nReconstructed secret: {secret}")
@@ -135,7 +153,9 @@ def reconstruct(shares_dir, share_files, commitments_path):
 @cli.command()
 @click.option("--share-file", required=True, help="Share file to verify")
 @click.option("--commitments", "commitments_path", required=True, help="Path to commitments.json")
-def verify(share_file, commitments_path):
+@click.option("--use-quantum", is_flag=True, help="Use Qiskit-backed quantum random generation.")
+@click.pass_context
+def verify(ctx, share_file, commitments_path, use_quantum):
     """Verify a single share against Feldman VSS commitments."""
     for path in (share_file, commitments_path):
         if not os.path.exists(path):
@@ -149,7 +169,7 @@ def verify(share_file, commitments_path):
 
     password = click.prompt("Password for share", hide_input=True)
 
-    vault = DistributedKeyVault()
+    vault = _build_vault(ctx, use_quantum)
     if vault.verify_share(encrypted_share, password, commitment_list):
         click.echo("VALID")
     else:

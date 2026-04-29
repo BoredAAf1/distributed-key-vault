@@ -11,6 +11,7 @@ A production-quality CLI tool that splits a secret using **Shamir's Secret Shari
 | Algorithm | Shamir's Secret Sharing over F_p (secp256k1 prime, 256-bit) |
 | Threshold | k-of-n: information-theoretically secure — *k-1* shares reveal **zero** information |
 | Share encryption | AES-256-GCM with PBKDF2-SHA256 (600 000 iterations, random salt per share) |
+| Randomness | OS CSPRNG by default; optional Qiskit-backed quantum random generation with `--use-quantum` |
 | Share verification | Feldman Verifiable Secret Sharing — detect corrupted/tampered shares before reconstruction |
 | Audit trail | Hash-chained, append-only audit log — tampering is detectable |
 | Replay protection | Per-reconstruction session with 300-second expiry and per-share duplicate rejection |
@@ -37,6 +38,18 @@ python cli.py split \
   --threshold 3 \
   --output-dir shares/
 # Prompts for the secret (hidden) and a password for each custodian
+```
+
+### Use quantum random generation
+
+By default the vault uses the operating system CSPRNG. To opt into Qiskit-backed
+quantum random generation for a CLI run, pass `--use-quantum` before the command:
+
+```bash
+python cli.py --use-quantum split \
+  --shares 5 \
+  --threshold 3 \
+  --output-dir shares/
 ```
 
 ### Reconstruct
