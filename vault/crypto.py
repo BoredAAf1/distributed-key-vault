@@ -3,11 +3,12 @@ AES-256-GCM encryption for individual shares, with PBKDF2-SHA256 key derivation.
 """
 
 import json
-import os
 
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.hazmat.primitives import hashes
+
+from vault.randomness import RandomSource, get_random_source
 
 _KDF_ITERATIONS = 600_000
 _SALT_BYTES = 16
@@ -16,6 +17,9 @@ _TAG_BYTES = 16
 
 
 class ShareCrypto:
+    def __init__(self, rng: RandomSource | None = None):
+        self.rng = rng or get_random_source()
+
     def derive_key(self, password: str, salt: bytes) -> bytes:
         kdf = PBKDF2HMAC(
             algorithm=hashes.SHA256(),
@@ -29,8 +33,8 @@ class ShareCrypto:
         """Encrypt (x, y) share tuple; returns hex-encoded {salt, nonce, ciphertext, tag}."""
         data = json.dumps({"x": share_tuple[0], "y": share_tuple[1]}).encode("utf-8")
 
-        salt = os.urandom(_SALT_BYTES)
-        nonce = os.urandom(_NONCE_BYTES)
+        salt = self.rng.random_bytes(_SALT_BYTES)
+        nonce = self.rng.random_bytes(_NONCE_BYTES)
         key = self.derive_key(password, salt)
 
         aesgcm = AESGCM(key)
