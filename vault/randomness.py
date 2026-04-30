@@ -2,8 +2,7 @@
 Randomness providers for vault operations.
 
 The default provider uses the operating system CSPRNG. The quantum provider is
-opt-in and imports Qiskit lazily so normal runs do not require Qiskit to be
-installed.
+opt-in.
 """
 
 import os
