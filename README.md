@@ -42,8 +42,7 @@ python cli.py split \
 
 ### Use quantum random generation
 
-By default the vault uses the operating system CSPRNG. To opt into Qiskit-backed
-quantum random generation for a CLI run, pass `--use-quantum` before the command:
+To opt into Qiskit-backed quantum random generation for a CLI run, pass `--use-quantum` before the command:
 
 ```bash
 python cli.py --use-quantum split \
